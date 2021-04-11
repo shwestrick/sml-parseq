@@ -1,0 +1,9 @@
+local
+  $(SML_LIB)/basis/basis.mlb
+  compat/mlton.mlb
+  SeqBasis.sml
+  Seq.sml
+in
+  structure SeqBasis
+  structure Seq
+end
