@@ -64,6 +64,19 @@ sig
   val scanIncl: ('a * 'a -> 'a) -> 'a -> 'a seq -> 'a seq
 
   val foreach: 'a seq -> (int * 'a -> unit) -> unit
+
+  val binarySearch: ('a * 'a -> order) -> 'a seq -> 'a -> int
+  val merge: ('a * 'a -> order) -> 'a seq * 'a seq -> 'a seq
+
+  (** A few different sorting algorithms. *)
+  val samplesort: ('a * 'a -> order) -> 'a seq -> 'a seq
+  val mergesort: ('a * 'a -> order) -> 'a seq -> 'a seq
+  val quicksort: ('a * 'a -> order) -> 'a seq -> 'a seq
+
+  val countingsort: 'a seq
+                 -> (int -> int)      (* bucket id of ith element *)
+                 -> int               (* number of buckets *)
+                 -> 'a seq * int seq  (* sorted, bucket offsets *)
 end
 ```
 
@@ -75,16 +88,20 @@ sig
     * needs one.
     *)
 
+  val for: (int * int)
+        -> (int -> unit)
+        -> unit
+
   val foldl: ('b * 'a -> 'b)
           -> 'b
           -> (int * int)
           -> (int -> 'a)
           -> 'b
 
-  val tabulate: grain          (* granularity control *)
-             -> (int * int)    (* range (i, j) *)
-             -> (int -> 'a)    (* function f *)
-             -> 'a array       (* output is  *)
+  val tabulate: grain
+             -> (int * int)
+             -> (int -> 'a)
+             -> 'a array
   (** `tabulate grain (i, j) f` produces the array [f(i), f(i+1), ..., f(j-1)].
     *)
 
