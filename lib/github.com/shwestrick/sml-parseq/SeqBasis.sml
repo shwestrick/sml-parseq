@@ -2,13 +2,20 @@ structure SeqBasis:
 sig
   type grain = int
 
-  val tabulate: grain -> (int * int) -> (int -> 'a) -> 'a array
+  val for: (int * int)
+        -> (int -> unit)
+        -> unit
 
   val foldl: ('b * 'a -> 'b)
           -> 'b
           -> (int * int)
           -> (int -> 'a)
           -> 'b
+
+  val tabulate: grain
+             -> (int * int)
+             -> (int -> 'a)
+             -> 'a array
 
   val reduce: grain
            -> ('a * 'a -> 'a)

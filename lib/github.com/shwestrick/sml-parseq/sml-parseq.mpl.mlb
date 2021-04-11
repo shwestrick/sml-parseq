@@ -2,6 +2,13 @@ local
   $(SML_LIB)/basis/basis.mlb
   compat/mpl.mlb
   SeqBasis.sml
+
+  BinarySearch.sml
+  QuickSort.sml
+  SampleSortUtil.sml
+  Merge.sml
+  MergeSort.sml
+
   Seq.sml
 in
   structure SeqBasis
