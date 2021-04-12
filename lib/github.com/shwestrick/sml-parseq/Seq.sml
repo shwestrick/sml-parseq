@@ -44,6 +44,9 @@ sig
                  -> (int -> int)      (* bucket id of ith element *)
                  -> int               (* number of buckets *)
                  -> 'a seq * int seq  (* sorted, bucket offsets *)
+
+  (** randomly shuffle. the second argument is a seed. *)
+  val shuffle: 'a seq -> int -> 'a seq
 end =
 struct
   structure A = Array
@@ -333,5 +336,94 @@ struct
         (C, bucketOffsets)
       end
     end
+
+  (** =========================================================================
+    * Random shuffling, inspired by parlaylib implementation
+    *)
+
+  fun log2 n =
+    if (n < 1) then 0 else 1 + log2(n div 2)
+
+  fun pow2 i =
+    if (i < 1) then 1 else 2 * pow2(i-1)
+
+  structure Random :>
+  sig
+    type t
+    type rand = t
+    val seeded: int -> rand
+    val fork: rand -> int -> rand
+    val next: rand -> rand
+    val int: rand -> int -> int
+    val word64: rand -> int -> Word64.word
+  end =
+  struct
+
+    fun hash64 u =
+      let
+        open Word64
+        infix 2 >> << xorb andb
+        val v = u * 0w3935559000370003845 + 0w2691343689449507681
+        val v = v xorb (v >> 0w21)
+        val v = v xorb (v << 0w37)
+        val v = v xorb (v >> 0w4)
+        val v = v * 0w4768777513237032717
+        val v = v xorb (v << 0w20)
+        val v = v xorb (v >> 0w41)
+        val v = v xorb (v << 0w5)
+      in
+        v
+      end
+
+    type t = Word64.word
+    type rand = t
+    fun seeded x = Word64.fromInt x
+    fun word64 r i = hash64 (Word64.+ (r, Word64.fromInt i))
+    fun fork r i = hash64 (word64 r i)
+    fun next r = fork r 0
+    fun int r i = Word64.toIntX (word64 r i)
+  end
+
+  fun knuthShuffleInPlace s (r: Random.t) =
+    SeqBasis.for (0, length s - 1) (fn i =>
+      let
+        val j = i + (Random.int r i) mod (length s - i)
+        val xi = nth s i
+        val xj = nth s j
+      in
+        AS.update (s, i, xj);
+        AS.update (s, j, xi)
+      end)
+
+  fun shuffle s seed =
+    if length s <= gran then
+      let
+        val result = tabulate (nth s) (length s)
+      in
+        knuthShuffleInPlace result (Random.seeded seed);
+        result
+      end
+    else
+      let
+        val n = length s
+        val r = Random.seeded seed
+        val bits =
+          if n < pow2 27
+          then (log2 n - 7) div 2
+          else log2 n - 17
+        val numBuckets = pow2 bits
+        val mask = Word64.fromInt (numBuckets - 1)
+        fun getBucket k = Word64.toInt (Word64.andb (Random.word64 r k, mask))
+        val (output, offsets) = countingsort s getBucket numBuckets
+      in
+        ForkJoin.parfor 1 (0, numBuckets) (fn i =>
+          let
+            val lo = nth offsets i
+            val hi = nth offsets (i+1)
+          in
+            knuthShuffleInPlace (subseq output (lo, hi-lo)) (Random.fork r i)
+          end);
+        output
+      end
 
 end
