@@ -1,0 +1,3 @@
+$(SML_LIB)/basis/basis.mlb
+../lib/github.com/shwestrick/sml-parseq/sml-parseq.mpl.mlb
+shuffle.sml
