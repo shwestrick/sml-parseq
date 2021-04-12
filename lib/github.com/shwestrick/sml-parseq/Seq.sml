@@ -381,13 +381,26 @@ struct
     fun word64 r i = hash64 (Word64.+ (r, Word64.fromInt i))
     fun fork r i = hash64 (word64 r i)
     fun next r = fork r 0
-    fun int r i = Word64.toIntX (word64 r i)
+
+    val int =
+      case Int.precision of
+        NONE => (fn r => fn i => Word64.toInt (word64 r i))
+      | SOME p => (fn r => fn i =>
+          let
+            val wp1 = Word.fromInt (p-1)
+            open Word64
+            infix 2 >> << andb
+            val v = word64 r i
+            val v = v andb ((0w1 << wp1) - 0w1)
+          in
+            toInt v
+          end)
   end
 
   fun knuthShuffleInPlace s (r: Random.t) =
     SeqBasis.for (0, length s - 1) (fn i =>
       let
-        val j = i + (Random.int r i) mod (length s - i)
+        val j = i + ((Random.int r i) mod (length s - i))
         val xi = nth s i
         val xj = nth s j
       in
