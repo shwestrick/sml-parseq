@@ -69,6 +69,7 @@ sig
   val merge: ('a * 'a -> order) -> 'a seq * 'a seq -> 'a seq
 
   (** A few different sorting algorithms. *)
+
   val samplesort: ('a * 'a -> order) -> 'a seq -> 'a seq
   val mergesort: ('a * 'a -> order) -> 'a seq -> 'a seq
   val quicksort: ('a * 'a -> order) -> 'a seq -> 'a seq
@@ -77,6 +78,11 @@ sig
                  -> (int -> int)      (* bucket id of ith element *)
                  -> int               (* number of buckets *)
                  -> 'a seq * int seq  (* sorted, bucket offsets *)
+
+  val shuffle: 'a seq -> int -> 'a seq
+  (** Randomly shuffle. The second argument is a seed; using the same
+    * seed will produce exactly the same output each time.
+    *)
 end
 ```
 
